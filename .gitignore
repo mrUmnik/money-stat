@@ -1,0 +1,14 @@
+# IDE
+*.idea
+
+# Composer
+vendor/
+composer.lock
+
+# logs
+log/
+
+#temporary files
+tmp/
+
+config.json

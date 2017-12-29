@@ -1,0 +1,13 @@
+{
+  "name": "mrUmnik/money-stat",
+  "description": "Spending money statistics",
+  "authors": [
+    {
+      "name": "mr.Umnik",
+      "email": "mr.umnik@gmail.com"
+    }
+  ],
+  "require": {
+    "nsbucky/pop3": "dev-master"
+  }
+}
