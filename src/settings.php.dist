@@ -24,4 +24,7 @@ return [
 			'prefix'    => '',
 		]
 	],
+	'basic_auth' => [
+		"username" => "password",
+	]
 ];
