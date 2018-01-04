@@ -8,6 +8,9 @@
     }
   ],
   "require": {
-    "nsbucky/pop3": "dev-master"
+    "nsbucky/pop3": "dev-master",
+    "slim/slim": "3.9.2",
+    "monolog/monolog": "1.23.0",
+    "slim/php-view": "2.2.0"
   }
 }

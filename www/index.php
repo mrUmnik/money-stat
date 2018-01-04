@@ -1,5 +1,10 @@
 <?php
-include dirname(__DIR__) . '/src/Bootstrap.php';
+require __DIR__ . '/../vendor/autoload.php';
 
-$app = \MoneyStat\Application::getInstance();
-$app->run(new \MoneyStat\Tasks\ProcessHttpRequest());
+$settings = require __DIR__ . '/../src/settings.php';
+$app = new \Slim\App($settings);
+require __DIR__ . '/../src/dependencies.php';
+require __DIR__ . '/../src/middleware.php';
+require __DIR__ . '/../src/routes_web.php';
+
+$app->run();

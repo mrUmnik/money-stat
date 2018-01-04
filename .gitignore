@@ -11,4 +11,4 @@ log/
 #temporary files
 tmp/
 
-config.json
+src/settings.php
