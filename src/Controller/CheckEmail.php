@@ -40,7 +40,7 @@ class CheckEmail
 						foreach ($attachments as $attachment) {
 							if (substr($attachment->name, -4) == '.txt') {
 								$this->container->logger->info('Found new attachment for parse: ' . $attachment->filePath);
-								$parser = new Sberbank();
+								$parser = new Sberbank($this->container);
 								$parser->parse($attachment->filePath);
 							}
 						}
