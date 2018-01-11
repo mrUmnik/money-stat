@@ -13,7 +13,8 @@
     "slim/php-view": "2.2.0",
     "tuupola/slim-basic-auth": "^2.3",
     "pavlakis/slim-cli": "^1.0",
-    "php-imap/php-imap": "3.0.5"
+    "php-imap/php-imap": "3.0.5",
+    "illuminate/database": "~5.1"
   },
   "autoload": {
     "psr-4": {

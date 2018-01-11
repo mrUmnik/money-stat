@@ -14,3 +14,14 @@ $container['logger'] = function ($c) {
 	$logger->pushHandler(new Monolog\Handler\StreamHandler($settings['path'], $settings['level']));
 	return $logger;
 };
+$container['db'] = function ($container) {
+	$capsule = new \Illuminate\Database\Capsule\Manager;
+	$capsule->addConnection($container['settings']['db']);
+
+	$capsule->setAsGlobal();
+	$capsule->bootEloquent();
+	//$capsule->getConnection()->enableQueryLog();
+
+	return $capsule;
+};
+$app->getContainer()->get('db'); // чтобв инициализировать базу

@@ -6,11 +6,16 @@
 namespace MoneyStat\Parser;
 
 
+use Carbon\Carbon;
+use Carbon\Exceptions\InvalidDateException;
+use MoneyStat\Entity\Transaction;
 use Psr\Container\ContainerInterface;
 
 class Sberbank
 {
 	const TABLE_DELIMITER = '--------------------+-----+-----+-------+--------------------------+---------------+--------------';
+
+	const TOTAL_MARKER = '               *****************';
 
 	protected $container;
 	protected $cellRanges = [
@@ -61,9 +66,13 @@ class Sberbank
 					continue;
 				}
 				$this->parsePage($rows);
+
 				$tableStarted = false;
 				$tableBodyStarted = false;
 				$rows = [];
+				continue;
+			}
+			if (strpos($row, self::TOTAL_MARKER) === 0) {
 				continue;
 			}
 			if ($tableBodyStarted) {
@@ -84,7 +93,6 @@ class Sberbank
 
 	protected function parsePage(array $rows)
 	{
-		$result = [];
 		$cardName = $rows[1][0];
 		$rowCounter = 0;
 		while (isset($rows[$rowCounter])) {
@@ -98,30 +106,65 @@ class Sberbank
 			$city = '';
 			$description = $rows[$rowCounter][4];
 			$description = trim($description);
-			if (preg_match('/ [A-Z]{2}$/', $description)) { // в описании есть код страны
-				$country = substr($description, -2);
-				$description = substr($description, 0, -2);
-				if (strlen($description) == 38) { // нормальная транакция вида "Покупка картой"
+			if (preg_match('/ ([A-Z]{2,3})$/', $description, $arCountryMatches)) { // в описании есть код страны
+				$country = $arCountryMatches[1];
+				$description = substr($description, 0, -strlen($country));
+				if (strlen($description) == 38 || strlen($description) == 39) { // нормальная транакция вида "Покупка картой"
 					$city = trim(substr($description, 25));
 					$description = substr($description, 0, 25);
 				}
 			}
 			$description = trim($description);
-			$result[] = [
+
+			$sum = $rows[$rowCounter][7];
+			if (substr($sum, -2) == 'CR') {
+				$income = 1;
+				$sum = substr($sum, 0, -2);
+			} else {
+				$income = 0;
+			}
+			$transactionParams = [
 				'card' => $cardName,
-				'transaction_date' => $rows[$rowCounter][1],
-				'processed_date' => $rows[$rowCounter][2],
+				'transaction_date' => $this->getDate($rows[$rowCounter][1] . substr($rows[$rowCounter][2], -2)),
+				'processed_date' => $this->getDate($rows[$rowCounter][2]),
 				'operation_id' => $rows[$rowCounter][3],
 				'description' => $description,
 				'currency' => $rows[$rowCounter][5],
-				'sum_in_currency' => $rows[$rowCounter][6],
-				'sum' => $rows[$rowCounter][7],
+				'sum_in_currency' => floatval($rows[$rowCounter][6]),
+				'sum' => floatval($sum),
 				'country' => $country,
-				'city' => $city
+				'city' => $city,
+				'income' => $income
 			];
+			$transaction = Transaction::firstOrCreate($transactionParams);
 
 			$rowCounter = $extraCounter;
 		}
-		return $result;
+	}
+
+	protected function getDate($dateStr)
+	{
+		$months = array(
+			'ЯНВ' => '01',
+			'ФЕВ' => '02',
+			'МАР' => '03',
+			'АПР' => '04',
+			'МАЙ' => '05',
+			'ИЮН' => '06',
+			'ИЮЛ' => '07',
+			'АВГ' => '08',
+			'СЕН' => '09',
+			'ОКТ' => '10',
+			'НОЯ' => '11',
+			'ДЕК' => '12',
+		);
+		$day = substr($dateStr, 0, 2);
+		$month = $months[substr($dateStr, 2, 3)];
+		if (!$month) {
+			throw new InvalidDateException('MONTH', $dateStr);
+		}
+		$year = '20' . substr($dateStr, 5);
+
+		return Carbon::createFromDate($year, $month, $day, 'GMT')->setTime(0, 0, 0);
 	}
 }
